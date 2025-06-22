@@ -21,7 +21,7 @@ export default function LoginPage() {
     const result = await signInWithPopup(auth, provider);
     const token = await result.user.getIdToken();
     localStorage.setItem("token", token);
-    // await sendToken(token);
+    await sendToken(token);
     router.push("/components/home");
   };
 
@@ -29,7 +29,7 @@ export default function LoginPage() {
     const result = await signInWithEmailAndPassword(auth, email, password);
     const token = await result.user.getIdToken();
     localStorage.setItem("token", token);
-    // await sendToken(token);
+    await sendToken(token);
     router.push("/components/home");
   };
 

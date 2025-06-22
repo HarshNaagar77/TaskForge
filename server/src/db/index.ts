@@ -3,7 +3,7 @@ import { Pool } from "pg";
 import dotenv from "dotenv";
 import * as schema from "./schema/users";
 
-dotenv.config(); // Load .env file
+dotenv.config();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -12,7 +12,6 @@ const pool = new Pool({
 export const db = drizzle(pool, { schema });
 export * from "./schema/users";
 
-// Optional: test connection
 (async () => {
   try {
     const result = await pool.query("SELECT NOW()");

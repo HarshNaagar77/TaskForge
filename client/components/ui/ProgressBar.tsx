@@ -1,22 +1,25 @@
-'use client';
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 
-type ProgressBarProps = {
-  tasks: { status: string }[];
-};
+const Progress = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & {
+    value?: number;
+    max?: number;
+  }
+>(({ className, value, max = 100, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn('relative h-2 w-full overflow-hidden rounded-full bg-secondary', className)}
+    {...props}
+  >
+    <div
+      className="h-full w-full flex-1 bg-primary transition-all"
+      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+    />
+  </div>
+));
 
-export default function ProgressBar({ tasks }: ProgressBarProps) {
-  const completed = tasks.filter((t) => t.status === 'completed').length;
-  const percent = tasks.length ? (completed / tasks.length) * 100 : 0;
+Progress.displayName = 'Progress';
 
-  return (
-    <div className="mt-4">
-      <p className="text-sm text-muted-foreground">Progress: {completed}/{tasks.length}</p>
-      <div className="w-full h-2 bg-gray-200 rounded mt-1">
-        <div
-          className="h-full bg-green-500 rounded"
-          style={{ width: `${percent}%` }}
-        ></div>
-      </div>
-    </div>
-  );
-}
+export { Progress };

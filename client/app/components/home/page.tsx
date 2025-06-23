@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Trash2 } from 'lucide-react';
+import { Progress } from '@/components/ui/ProgressBar';
 import { auth } from '../../lib/firebase';
 import { onAuthStateChanged, getIdToken } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -26,17 +26,15 @@ export default function Dashboard() {
   const [token, setToken] = useState<string | null>(null);
   const router = useRouter();
 
-  // Check auth and get fresh token
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
-          const freshToken = await getIdToken(user, true); // Force refresh token
+          const freshToken = await getIdToken(user, true);
           localStorage.setItem('token', freshToken);
           setToken(freshToken);
           fetchSavedTasks(freshToken);
-        } catch (error) {
-          console.error("Token expired or invalid:", error);
+        } catch {
           await auth.signOut();
           localStorage.removeItem('token');
           router.push('/components/login');
@@ -46,10 +44,9 @@ export default function Dashboard() {
         router.push('/components/login');
       }
     });
-  
+
     return () => unsubscribe();
   }, []);
-  
 
   const fetchSavedTasks = async (freshToken: string) => {
     const res = await axios.get('http://localhost:3001/api/task/my', {
@@ -69,8 +66,8 @@ export default function Dashboard() {
   };
 
   const saveTask = async (task: string) => {
+    if (!token) return;
     try {
-      if (!token) return;
       const res = await axios.post(
         'http://localhost:3001/api/task/save',
         { topic, title: task },
@@ -104,12 +101,16 @@ export default function Dashboard() {
     setSavedTasks((prev) => prev.filter((task) => task.id !== id));
   };
 
+  const totalTasks = savedTasks.length;
+  const completedTasks = savedTasks.filter((task) => task.status === 'completed').length;
+  const completionPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+
   return (
     <div className="min-h-screen md:flex text-white">
       {/* Left Side - Gradient background */}
-      <div className="w-full md:w-1/2 p-6 gradient-background">
+      <div className="w-full md:w-1/2 p-6 bg-gradient-to-br from-[#0f2027] via-[#203a43] to-[#2c5364]">
         <div className="backdrop-blur-lg bg-white/10 rounded-xl p-6 space-y-4 h-[95vh] md:h-full">
-          <h1 className="text-5xl font-bold archivo">TASK<br /><span className="">FORGE.</span></h1>
+          <h1 className="text-5xl font-bold archivo">TASK<br /><span>FORGE.</span></h1>
 
           <textarea
             value={topic}
@@ -121,12 +122,10 @@ export default function Dashboard() {
 
           <Button
             onClick={handleGenerate}
-            className="cursor-pointer bg-white/20 text-white hover:bg-white/30 backdrop-blur w-full"
+            className="bg-white/20 text-white hover:bg-white/30 backdrop-blur w-full"
           >
             Generate
           </Button>
-          
-
 
           <div className="space-y-3">
             {generatedTasks.map((task, index) => (
@@ -134,8 +133,8 @@ export default function Dashboard() {
                 key={index}
                 className="flex justify-between items-center bg-white/10 p-3 rounded-lg backdrop-blur-sm"
               >
-                <span>{task}</span>
-                <Button variant="secondary" onClick={() => saveTask(task)}>
+                <span className="pr-3">{task}</span>
+                <Button className=" bg-white/20 text-white hover:bg-white/30 backdrop-blur" size="sm" onClick={() => saveTask(task)}>
                   Save
                 </Button>
               </div>
@@ -144,20 +143,28 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Right Side - Black background */}
-      <div className="w-full md:w-1/2 p-6 bg-black">
+      {/* Right Side - Saved Tasks */}
+      <div className="w-full md:w-1/2 p-6 bg-black relative">
+        <Button
+          onClick={async () => {
+            await auth.signOut();
+            localStorage.removeItem('token');
+            router.push('/components/login');
+          }}
+          className="absolute top-12 right-12 z-50 bg-white/20 text-white hover:bg-white/30 backdrop-blur"
+        >
+          Logout
+        </Button>
+
         <div className="backdrop-blur-lg bg-white/10 rounded-xl p-6 space-y-4 h-[95vh] md:h-full">
           <h2 className="text-3xl font-bold archivo">Saved Tasks.</h2>
-          <Button
-            onClick={async () => {
-              await auth.signOut();
-              localStorage.removeItem('token');
-              router.push('/components/login');
-            }}
-            className="cursor-pointer bg-white/20 text-white hover:bg-white/30 backdrop-blur absolute top-5 right-5"
-          >
-            Logout
-          </Button>
+
+          {/* Progress Visualization */}
+          <div className="mb-4 space-y-2">
+            <p className="text-sm text-white/80">Progress: {completionPercentage}%</p>
+            <Progress value={completionPercentage} className="h-3 bg-white/10" />
+          </div>
+
           {savedTasks.length === 0 ? (
             <p className="text-white/50">No tasks saved yet.</p>
           ) : (
@@ -178,7 +185,6 @@ export default function Dashboard() {
                 <Button variant="ghost" onClick={() => deleteTask(task.id)} className="hover:bg-white/10">
                   <Trash2 className="text-red-400" />
                 </Button>
-                
               </div>
             ))
           )}

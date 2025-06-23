@@ -46,9 +46,9 @@ export default function LoginPage() {
 
   return (
     <div className="flex">
-      <div className="right gradient-background w-[50%] h-screen"></div>
+      <div className="right gradient-background md:w-[50%] h-screen"></div>
   
-      <div className="left bg-[#0a0a0a] w-[50%] h-screen flex items-center justify-center">
+      <div className="left bg-[#0a0a0a] md:w-[50%] h-screen flex items-center justify-center">
   
       <Link  href="/components/login" className=" text-white absolute right-10 top-8">Login</Link>
         

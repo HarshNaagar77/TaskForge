@@ -23,6 +23,7 @@ export default function LoginPage() {
   const loginWithGoogle = async () => {
     const result = await signInWithPopup(auth, provider);
     const token = await result.user.getIdToken();
+    console.log(token)
     localStorage.setItem("token", token);
     await sendToken(token);
     router.push("/components/home");

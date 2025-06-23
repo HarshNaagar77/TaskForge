@@ -126,7 +126,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen md:flex text-white">
       {/* Left Side */}
-      <div className="w-full md:w-1/2 p-6 bg-gradient-to-br from-[#0f2027] via-[#203a43] to-[#2c5364]">
+      <div className="w-full md:w-1/2 p-6 gradient-background">
         <div className="backdrop-blur-lg bg-white/10 rounded-xl p-6 space-y-4 h-[95vh] md:h-full">
           <h1 className="text-5xl font-bold archivo">TASK<br /><span>FORGE.</span></h1>
 

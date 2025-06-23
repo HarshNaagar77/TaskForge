@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/ProgressBar';
 import { auth } from '../../lib/firebase';
 import { onAuthStateChanged, getIdToken } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton'; // if installed with shadcn-ui
 
 type GeneratedTask = string;
 
@@ -26,6 +27,7 @@ export default function Dashboard() {
   const [token, setToken] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'completed' | 'incomplete'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -59,17 +61,21 @@ export default function Dashboard() {
 
   const handleGenerate = async () => {
     if (!token) return;
-    const res = await axios.post(
-      'http://localhost:3001/api/task/generate-tasks',
-      { topic },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-  
-    // The backend already returns an array of tasks
-    setGeneratedTasks(res.data.tasks);
+    setIsGenerating(true);
+    setGeneratedTasks([]);
+    try {
+      const res = await axios.post(
+        'http://localhost:3001/api/task/generate-tasks',
+        { topic },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setGeneratedTasks(res.data.tasks);
+    } catch (error) {
+      console.error('Error generating tasks', error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
-  
-  
 
   const saveTask = async (task: string) => {
     if (!token) return;
@@ -122,7 +128,9 @@ export default function Dashboard() {
       {/* Left Side */}
       <div className="w-full md:w-1/2 p-6 gradient-background">
         <div className="backdrop-blur-lg bg-white/10 rounded-xl p-6 space-y-4 h-[95vh] md:h-full">
-          <h1 className="text-5xl font-bold archivo">TASK<br /><span>FORGE.</span></h1>
+          <h1 className="text-5xl font-bold archivo">
+            TASK<br /><span>FORGE.</span>
+          </h1>
 
           <textarea
             value={topic}
@@ -140,21 +148,28 @@ export default function Dashboard() {
           </Button>
 
           <div className="space-y-3">
-            {generatedTasks.map((task, index) => (
-              <div
-                key={index}
-                className="flex justify-between items-center bg-white/10 p-3 rounded-lg backdrop-blur-sm"
-              >
-                <span className="pr-3">{task}</span>
-                <Button
-                  className="bg-white/20 text-white hover:bg-white/30 backdrop-blur"
-                  size="sm"
-                  onClick={() => saveTask(task)}
-                >
-                  Save
-                </Button>
-              </div>
-            ))}
+            {isGenerating
+              ? Array.from({ length: 5 }).map((_, index) => (
+                  <Skeleton
+                    key={index}
+                    className="h-5 w-full rounded-md bg-white/20 animate-pulse"
+                  />
+                ))
+              : generatedTasks.map((task, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center bg-white/10 p-3 rounded-lg backdrop-blur-sm"
+                  >
+                    <span className="pr-3">{task}</span>
+                    <Button
+                      className="bg-white/20 text-white hover:bg-white/30 backdrop-blur"
+                      size="sm"
+                      onClick={() => saveTask(task)}
+                    >
+                      Save
+                    </Button>
+                  </div>
+                ))}
           </div>
         </div>
       </div>
@@ -183,23 +198,20 @@ export default function Dashboard() {
 
           {/* Filter + Search */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex gap-2">
-                {(['all', 'completed', 'incomplete'] as const).map((type) => (
-                  <Button
-                    key={type}
-                    onClick={() => setFilter(type)}
-                    className={`
-                      border 
-                      ${filter === type
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white text-black hover:bg-gray-200 '}
-                    `}
-                  >
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </Button>
-                ))}
-              </div>
+            <div className="flex gap-2">
+              {(['all', 'completed', 'incomplete'] as const).map((type) => (
+                <Button
+                  key={type}
+                  onClick={() => setFilter(type)}
+                  className={`border ${
+                    filter === type
+                      ? 'bg-black text-white border-black'
+                      : 'bg-white text-black hover:bg-gray-200'
+                  }`}
+                >
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </Button>
+              ))}
             </div>
 
             <input

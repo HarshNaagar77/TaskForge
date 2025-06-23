@@ -1,89 +1,89 @@
 'use client';
-
-import React, { useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 
-// Define the shape of a task object returned from your backend
-type Task = {
+type GeneratedTask = string;
+type SavedTask = {
   id: string;
-  userId: string;
   title: string;
   topic: string;
-  status: string;
-  createdAt: string;
+  status: 'completed' | 'incomplete';
 };
 
-const Page = () => {
+export default function Dashboard() {
   const [topic, setTopic] = useState('');
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [generatedTasks, setGeneratedTasks] = useState<GeneratedTask[]>([]);
+  const [savedTasks, setSavedTasks] = useState<SavedTask[]>([]);
 
-  const generateTasks = async () => {
-    setLoading(true);
-    setError('');
-    setTasks([]);
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
 
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError('No auth token found. Please log in.');
-      setLoading(false);
-      return;
-    }
+  const handleGenerate = async () => {
+    const res = await axios.post(
+      'http://localhost:3001/api/task/generate-tasks',
+      { topic },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    setGeneratedTasks(res.data.tasks);
+  };
 
-    try {
-      const response = await axios.post(
-        'http://localhost:3001/api/task/generate-tasks',
-        { topic },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
+  const saveTask = async (task: string) => {
+    try{
+      const res = await axios.post(
+        'http://localhost:3001/api/task/save',
+        { topic, title: task },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      setTasks(response.data.tasks); // Must be an array of Task objects
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Something went wrong.');
-    } finally {
-      setLoading(false);
+      setSavedTasks((prev) => [...prev, res.data.task]);
+    }
+    catch ( err ){
+      alert("Already Saved")
     }
   };
 
+  const toggleComplete = async (id: string, currentStatus: string) => {
+    await axios.patch(`http://localhost:3001/api/task/${id}`, {
+      status: currentStatus === 'completed' ? 'incomplete' : 'completed',
+    });
+    setSavedTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, status: t.status === 'completed' ? 'incomplete' : 'completed' } : t))
+    );
+  };
+
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-xl shadow space-y-4">
-      <h1 className="text-2xl font-bold">Home - Task Generator</h1>
+    <div className="max-w-xl mx-auto mt-10 space-y-6">
+      <h1 className="text-3xl font-semibold">AI Task Generator</h1>
+      <div className="flex gap-2">
+        <Input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Enter a topic..." />
+        <Button onClick={handleGenerate}>Generate</Button>
+      </div>
 
-      <input
-        type="text"
-        placeholder="Enter a topic (e.g. Learn TypeScript)"
-        value={topic}
-        onChange={(e) => setTopic(e.target.value)}
-        className="w-full px-4 py-2 border border-gray-300 rounded"
-      />
+      <div className="space-y-2">
+        <h2 className="text-xl font-bold">Generated Tasks</h2>
+        {generatedTasks.map((task, index) => (
+          <div key={index} className="flex justify-between bg-gray-100 p-2 rounded">
+            <span>{task}</span>
+            <Button variant="secondary" onClick={() => saveTask(task)}>Save</Button>
+          </div>
+        ))}
+      </div>
 
-      <button
-        onClick={generateTasks}
-        disabled={!topic || loading}
-        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-      >
-        {loading ? 'Generating...' : 'Generate Tasks'}
-      </button>
-
-      {error && <p className="text-red-500">{error}</p>}
-
-      {tasks.length > 0 && (
-        <ul className="list-disc pl-5 space-y-1">
-          {tasks.map((task) => (
-            <li key={task.id}>
-              <strong>{task.title}</strong> <br />
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="space-y-2">
+        <h2 className="text-xl font-bold">Saved Tasks</h2>
+        {savedTasks.map((task) => (
+          <div key={task.id} className="flex items-center gap-3 bg-gray-100 p-2 rounded">
+            <Checkbox
+              checked={task.status === 'completed'}
+              onCheckedChange={() => toggleComplete(task.id, task.status)}
+            />
+            <span className={task.status === 'completed' ? 'line-through text-gray-500' : ''}>
+              {task.title}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
-};
-
-export default Page;
+}

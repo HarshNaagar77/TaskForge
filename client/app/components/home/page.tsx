@@ -24,6 +24,8 @@ export default function Dashboard() {
   const [generatedTasks, setGeneratedTasks] = useState<GeneratedTask[]>([]);
   const [savedTasks, setSavedTasks] = useState<SavedTask[]>([]);
   const [token, setToken] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'all' | 'completed' | 'incomplete'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -62,8 +64,18 @@ export default function Dashboard() {
       { topic },
       { headers: { Authorization: `Bearer ${token}` } }
     );
-    setGeneratedTasks(res.data.tasks);
+  
+    const rawText = res.data.tasks[0];
+  
+    // Split on periods, preserve meaningful sentences
+    const splitTasks = rawText
+      .split('.')
+      .map(t => t.trim())
+      .filter(t => t.length > 3); // ignore very short parts
+  
+    setGeneratedTasks(splitTasks);
   };
+  
 
   const saveTask = async (task: string) => {
     if (!token) return;
@@ -105,9 +117,15 @@ export default function Dashboard() {
   const completedTasks = savedTasks.filter((task) => task.status === 'completed').length;
   const completionPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
+  const filteredTasks = savedTasks.filter((task) => {
+    const matchesFilter = filter === 'all' ? true : task.status === filter;
+    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
   return (
     <div className="min-h-screen md:flex text-white">
-      {/* Left Side - Gradient background */}
+      {/* Left Side */}
       <div className="w-full md:w-1/2 p-6 bg-gradient-to-br from-[#0f2027] via-[#203a43] to-[#2c5364]">
         <div className="backdrop-blur-lg bg-white/10 rounded-xl p-6 space-y-4 h-[95vh] md:h-full">
           <h1 className="text-5xl font-bold archivo">TASK<br /><span>FORGE.</span></h1>
@@ -134,7 +152,11 @@ export default function Dashboard() {
                 className="flex justify-between items-center bg-white/10 p-3 rounded-lg backdrop-blur-sm"
               >
                 <span className="pr-3">{task}</span>
-                <Button className=" bg-white/20 text-white hover:bg-white/30 backdrop-blur" size="sm" onClick={() => saveTask(task)}>
+                <Button
+                  className="bg-white/20 text-white hover:bg-white/30 backdrop-blur"
+                  size="sm"
+                  onClick={() => saveTask(task)}
+                >
                   Save
                 </Button>
               </div>
@@ -143,7 +165,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Right Side - Saved Tasks */}
+      {/* Right Side */}
       <div className="w-full md:w-1/2 p-6 bg-black relative">
         <Button
           onClick={async () => {
@@ -157,18 +179,48 @@ export default function Dashboard() {
         </Button>
 
         <div className="backdrop-blur-lg bg-white/10 rounded-xl p-6 space-y-4 h-[95vh] md:h-full">
-          <h2 className="text-3xl font-bold archivo">Saved Tasks.</h2>
+          <h2 className="text-3xl font-bold archivo">Saved Tasks</h2>
 
-          {/* Progress Visualization */}
+          {/* Progress bar */}
           <div className="mb-4 space-y-2">
             <p className="text-sm text-white/80">Progress: {completionPercentage}%</p>
             <Progress value={completionPercentage} className="h-3 bg-white/10" />
           </div>
 
-          {savedTasks.length === 0 ? (
-            <p className="text-white/50">No tasks saved yet.</p>
+          {/* Filter + Search */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex gap-2">
+                {(['all', 'completed', 'incomplete'] as const).map((type) => (
+                  <Button
+                    key={type}
+                    onClick={() => setFilter(type)}
+                    className={`
+                      border 
+                      ${filter === type
+                        ? 'bg-black text-white border-black'
+                        : 'bg-white text-black hover:bg-gray-200 '}
+                    `}
+                  >
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search tasks..."
+              className="w-full sm:w-64 rounded-md px-3 py-2 bg-white/10 text-white placeholder:text-white/60 border border-white/20 focus:outline-none"
+            />
+          </div>
+
+          {filteredTasks.length === 0 ? (
+            <p className="text-white/50">No matching tasks.</p>
           ) : (
-            savedTasks.map((task) => (
+            filteredTasks.map((task) => (
               <div
                 key={task.id}
                 className="flex justify-between items-center bg-white/10 p-3 rounded-lg backdrop-blur-sm"
@@ -182,7 +234,11 @@ export default function Dashboard() {
                     {task.title}
                   </span>
                 </div>
-                <Button variant="ghost" onClick={() => deleteTask(task.id)} className="hover:bg-white/10">
+                <Button
+                  variant="ghost"
+                  onClick={() => deleteTask(task.id)}
+                  className="hover:bg-white/10"
+                >
                   <Trash2 className="text-red-400" />
                 </Button>
               </div>

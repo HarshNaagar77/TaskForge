@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Libre+Barcode+39+Extended+Text&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -141,4 +142,19 @@
     }:root {--4-x-position: 9.062500000000002%;--4-y-position: 42.89062500000001%;--5-x-position: 66.5234375%;--5-y-position: 68.4375%;--9-x-position: 9.062500000000002%;--9-y-position: 42.89062500000001%;--10-x-position: 66.5234375%;--10-y-position: 68.4375%;}
 @keyframes main {
   25% {--9-x-position: 15%;--9-y-position: 15%;--10-x-position: 85%;--10-y-position: 80%;}50% {--9-x-position: 80%;--9-y-position: 15%;--10-x-position: 15%;--10-y-position: 85%;}
+}
+
+.bg-glass {
+  background: rgba(255, 255, 255, 0.1); /* Semi-transparent */
+  backdrop-filter: blur(16px);          /* Frosted effect */
+  -webkit-backdrop-filter: blur(16px);  /* For Safari */
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Soft border */
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37); /* Optional soft shadow */
+}
+
+.archivo   {
+  font-family: "Archivo Black", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }

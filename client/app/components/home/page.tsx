@@ -65,16 +65,10 @@ export default function Dashboard() {
       { headers: { Authorization: `Bearer ${token}` } }
     );
   
-    const rawText = res.data.tasks[0];
-  
-    // Split on periods, preserve meaningful sentences
-    const splitTasks = rawText
-      .split('.')
-      .map(t => t.trim())
-      .filter(t => t.length > 3); // ignore very short parts
-  
-    setGeneratedTasks(splitTasks);
+    // The backend already returns an array of tasks
+    setGeneratedTasks(res.data.tasks);
   };
+  
   
 
   const saveTask = async (task: string) => {

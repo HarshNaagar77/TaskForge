@@ -11,7 +11,7 @@ export const verifyFirebaseToken = async (
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     res.status(401).json({ message: "Unauthorized" });
     return;
-  }
+  }  
 
   const token = authHeader.split(" ")[1];
 

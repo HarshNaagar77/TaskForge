@@ -7,8 +7,13 @@ import taskRoutes from "./routes/task";
 dotenv.config();
 
 const app = express();
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://taskforge-client.onrender.com'
+];
 app.use(cors({
-  origin: "*"
+  origin: allowedOrigins,
+  credentials: true,
 }));
 
 app.use(express.json());

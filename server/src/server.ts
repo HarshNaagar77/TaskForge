@@ -23,7 +23,7 @@ app.use(express.json());
 
 
 app.use("/api/auth", authRoutes);
-app.use("/api/task", taskRoutes);
+app.use("/task", taskRoutes);
 
 app.get("/", (_req, res) => {
   res.send("TaskForge Backend API is running 🚀");

@@ -53,7 +53,7 @@ export default function Dashboard() {
   }, [router]);
 
   const fetchSavedTasks = async (freshToken: string) => {
-    const res = await axios.get('/task/my', {
+    const res = await axios.get('/api/task/my', {
       headers: { Authorization: `Bearer ${freshToken}` },
     });
     setSavedTasks(res.data.tasks);
@@ -81,7 +81,7 @@ export default function Dashboard() {
     if (!token) return;
     try {
       const res = await axios.post(
-        '/task/save',
+        '/api/task/save',
         { topic, title: task },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -94,7 +94,7 @@ export default function Dashboard() {
   const toggleComplete = async (id: string, currentStatus: string) => {
     if (!token) return;
     await axios.patch(
-      `/task/${id}`,
+      `/api/task/${id}`,
       { status: currentStatus === 'completed' ? 'incomplete' : 'completed' },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -107,7 +107,7 @@ export default function Dashboard() {
 
   const deleteTask = async (id: string) => {
     if (!token) return;
-    await axios.delete(`/task/${id}`, {
+    await axios.delete(`/api/task/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     setSavedTasks((prev) => prev.filter((task) => task.id !== id));

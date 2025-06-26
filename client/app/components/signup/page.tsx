@@ -62,9 +62,9 @@ export default function SignUpPage() {
       localStorage.setItem("token", token);
       await sendToken(token);
       router.push("/components/home");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("❌ Registration failed:");
-      alert(`Registration Error:\n${err.code}\n${err.message}`);
+      alert(`Registration Error:\n${err}\n${err instanceof Error ? err.message : ''}`);
     }
   };
 

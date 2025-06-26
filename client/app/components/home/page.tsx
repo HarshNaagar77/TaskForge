@@ -50,7 +50,7 @@ export default function Dashboard() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   const fetchSavedTasks = async (freshToken: string) => {
     const res = await axios.get('http://localhost:3001/api/task/my', {

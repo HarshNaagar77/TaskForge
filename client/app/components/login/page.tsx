@@ -61,9 +61,9 @@ export default function LoginPage() {
       localStorage.setItem("token", token);
       await sendToken(token);
       router.push("/components/home");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login failed:", err);
-      alert(`Login Error:\n${err.code}\n${err.message}`);
+      alert(`Login Error:\n${err}\n${err instanceof Error ? err.message : ''}`);
     }
   };
 

@@ -1,7 +1,7 @@
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, serial } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
-  id: text("id").primaryKey().notNull(),
+  id: serial("id").primaryKey(),
   email: text("email").notNull(),
   firebase_Uid: text("firebase_uid").notNull(),
   name: text("name"),

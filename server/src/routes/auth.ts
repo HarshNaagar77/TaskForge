@@ -19,7 +19,6 @@ router.post("/verify", verifyFirebaseToken, async (req, res) => {
   if (!existingUser) {
     console.log("🆕 User does not exist. Inserting...");
     await db.insert(users).values({
-      id: uid,
       email,
       firebase_Uid: uid,
       name,

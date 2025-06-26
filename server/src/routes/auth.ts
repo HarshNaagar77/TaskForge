@@ -13,15 +13,15 @@ router.post("/verify", verifyFirebaseToken, async (req, res) => {
   console.log("👤 Firebase user info:", { uid, email, name });
 
   const existingUser = await db.query.users.findFirst({
-    where: eq(users.firebaseUid, uid),
+    where: eq(users.firebase_Uid, uid),
   });
 
   if (!existingUser) {
     console.log("🆕 User does not exist. Inserting...");
     await db.insert(users).values({
-      id: uuidv4(),
+      id: uid,
       email,
-      firebaseUid: uid,
+      firebase_Uid: uid,
       name,
     });
     console.log("✅ User inserted");
